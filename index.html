@@ -105,6 +105,10 @@
       <span class="unit" id="hero-unit"></span>
     </div>
     <div class="delta" id="hero-delta"></div>
+    <div style="margin-top:8px;">
+      <button id="live-check-btn" style="font-family:var(--sans);font-size:12px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:3px;padding:6px 12px;cursor:pointer;">지금 값 다시 확인</button>
+      <div id="live-check-note" style="font-size:12px;margin-top:6px;display:none;"></div>
+    </div>
 
     <div class="timegrid">
       <div class="box">
@@ -132,7 +136,7 @@
 </div>
 
 <script>
-const SOURCE_URL = "https://api.goldprice.dev/v1/prices?symbol=XAU-KRW-SPOT";
+const SOURCE_URL = "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT";
 
 const FAILURE_INFO = {
   timeout: {
@@ -288,7 +292,7 @@ function renderBanner(record) {
   `;
 
   if (info.action === "retry_now") {
-    document.getElementById("retry-btn").addEventListener("click", attemptLiveRetry);
+    document.getElementById("retry-btn").addEventListener("click", () => attemptLiveRetry("retry-btn", "live-note"));
   } else if (info.action === "countdown") {
     let remaining = 60;
     const countdownEl = document.getElementById("countdown-text");
@@ -299,7 +303,7 @@ function renderBanner(record) {
         clearInterval(timer);
         countdownEl.textContent = "다시 시도 가능";
         btn.disabled = false;
-        btn.addEventListener("click", attemptLiveRetry);
+        btn.addEventListener("click", () => attemptLiveRetry("retry-btn", "live-note"));
       } else {
         countdownEl.textContent = `${remaining}초 후 다시 시도 가능`;
       }
@@ -316,9 +320,10 @@ function renderBanner(record) {
   }
 }
 
-async function attemptLiveRetry() {
-  const note = document.getElementById("live-note");
-  const btn = document.getElementById("retry-btn");
+async function attemptLiveRetry(btnId, noteId) {
+  const note = document.getElementById(noteId);
+  const btn = document.getElementById(btnId);
+  const originalBtnText = btn ? btn.textContent : "";
   if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
   note.style.display = "block";
   note.style.color = "var(--text-muted)";
@@ -330,16 +335,19 @@ async function attemptLiveRetry() {
     clearTimeout(t);
     if (!res.ok) throw new Error("http " + res.status);
     const json = await res.json();
-    if (typeof json.price !== "number" || typeof json.computed_at !== "string") throw new Error("shape");
+    const livePrice = typeof json.price === "string" ? parseFloat(json.price) : NaN;
+    if (!Number.isFinite(livePrice) || typeof json.computed_at !== "string") throw new Error("shape");
     note.style.color = "var(--gold)";
-    note.textContent = `방금 확인: ${fmtWon(json.price)}원 (참고용 — 정식 기록은 다음 자동 수집 때 저장됩니다)`;
-    if (btn) { btn.textContent = "다시 확인함"; }
+    note.textContent = `방금 확인: ${fmtWon(livePrice)}원 (참고용 — data/history.json에는 저장되지 않으며, 정식 일별 기록은 다음 자동 수집 때만 저장됩니다)`;
+    if (btn) { btn.disabled = false; btn.textContent = originalBtnText === "지금 다시 시도" ? "다시 확인함" : originalBtnText; }
   } catch (e) {
     note.style.color = "var(--fail)";
-    note.textContent = "지금은 다시 확인할 수 없습니다. 다음 자동 수집을 기다려 주세요.";
-    if (btn) { btn.disabled = false; btn.textContent = "지금 다시 시도"; }
+    note.textContent = "지금은 다시 확인할 수 없습니다. 잠시 후 다시 시도하거나 다음 자동 수집을 기다려 주세요.";
+    if (btn) { btn.disabled = false; btn.textContent = originalBtnText; }
   }
 }
+
+document.getElementById("live-check-btn").addEventListener("click", () => attemptLiveRetry("live-check-btn", "live-check-note"));
 
 function renderValue() {
   const record = HISTORY.length > 0 ? HISTORY[HISTORY.length - 1] : null;
