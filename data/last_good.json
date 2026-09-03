@@ -1,8 +1,8 @@
 {
   "date": "2026-09-03",
-  "fetched_at_utc": "2026-09-03T04:51:31.302Z",
-  "source_time_utc": "2026-09-03T04:51:03.590502+00:00",
-  "value": 6029635.2012,
+  "fetched_at_utc": "2026-09-03T05:10:06.060Z",
+  "source_time_utc": "2026-09-03T05:10:02.903761+00:00",
+  "value": 6033849.74192,
   "unit": "KRW / 1 트로이온스(XAU)",
   "source_url": "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT",
   "source_name": "goldprice.dev"
