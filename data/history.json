@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "date": "2026-09-03",
+    "fetched_at_utc": "2026-09-03T04:42:56.290Z",
+    "status": "invalid_shape",
+    "http_status": 200,
+    "detail": "예상한 필드(price 숫자, computed_at 문자열)가 없습니다. 받은 값 일부: {}",
+    "unit": "KRW / 1 트로이온스(XAU)",
+    "source_url": "https://api.goldprice.dev/v1/prices?symbol=XAU-KRW-SPOT",
+    "source_name": "goldprice.dev",
+    "value": null,
+    "source_time_utc": null,
+    "raw": null
+  }
+]
