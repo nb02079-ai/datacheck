@@ -1,15 +1,20 @@
 [
   {
     "date": "2026-09-03",
-    "fetched_at_utc": "2026-09-03T04:42:56.290Z",
-    "status": "invalid_shape",
+    "fetched_at_utc": "2026-09-03T04:51:31.302Z",
+    "status": "ok",
     "http_status": 200,
-    "detail": "예상한 필드(price 숫자, computed_at 문자열)가 없습니다. 받은 값 일부: {}",
+    "detail": "1 트로이온스 = 6,029,635.201 KRW",
     "unit": "KRW / 1 트로이온스(XAU)",
-    "source_url": "https://api.goldprice.dev/v1/prices?symbol=XAU-KRW-SPOT",
+    "source_url": "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT",
     "source_name": "goldprice.dev",
-    "value": null,
-    "source_time_utc": null,
-    "raw": null
+    "value": 6029635.2012,
+    "source_time_utc": "2026-09-03T04:51:03.590502+00:00",
+    "raw": {
+      "price": 6029635.2012,
+      "price_source_string": "6029635.20120",
+      "computed_at": "2026-09-03T04:51:03.590502+00:00",
+      "is_stale": false
+    }
   }
 ]
