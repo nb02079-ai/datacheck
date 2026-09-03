@@ -53,7 +53,6 @@
   .banner button:hover, .banner a.btn:hover { border-color: var(--text-muted); }
   .banner button:disabled { opacity: 0.5; cursor: default; }
   .banner .countdown { font-family: var(--mono); font-size: 12px; color: var(--stale); }
-  #live-note { font-size: 12px; color: var(--gold); margin-top: 8px; display: none; }
 
   .value-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
   .value-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -105,10 +104,6 @@
       <span class="unit" id="hero-unit"></span>
     </div>
     <div class="delta" id="hero-delta"></div>
-    <div style="margin-top:8px;">
-      <button id="live-check-btn" style="font-family:var(--sans);font-size:12px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:3px;padding:6px 12px;cursor:pointer;">지금 값 다시 확인</button>
-      <div id="live-check-note" style="font-size:12px;margin-top:6px;display:none;"></div>
-    </div>
 
     <div class="timegrid">
       <div class="box">
@@ -141,29 +136,44 @@ const SOURCE_URL = "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT";
 const FAILURE_INFO = {
   timeout: {
     msg: "출처 응답이 느립니다.",
-    action: "retry_now",
+    action: "actions_link",
   },
   network_error: {
     msg: "네트워크에 연결할 수 없습니다.",
-    action: "retry_now",
+    action: "actions_link",
   },
   http_error: {
     msg: "출처에서 예기치 못한 오류가 발생했습니다.",
-    action: "retry_now",
+    action: "actions_link",
   },
   unauthorized: {
     msg: "출처가 요청을 거부했습니다. 재시도해도 바로 해결되지 않습니다.",
     action: "link",
   },
   rate_limited: {
-    msg: "호출 한도를 초과했습니다.",
-    action: "countdown",
+    msg: "호출 한도를 초과했습니다. 시간이 지나면 자동으로 풀립니다.",
+    action: "actions_link_countdown",
   },
   invalid_shape: {
     msg: "출처 응답 형식이 바뀐 것 같습니다. 자동 복구가 어려울 수 있습니다.",
     action: "report",
   },
 };
+
+// GitHub Pages 주소(예: nb02079-ai.github.io/datacheck/)에서
+// 계정명·저장소명을 읽어 그 저장소의 실제 Actions 페이지 링크를 만든다.
+// 브라우저에서 goldprice.dev를 직접 재호출하는 건 CORS로 막혀 있어 항상 실패하므로,
+// "다시 시도"는 실제로 재수집이 가능한 GitHub Actions 페이지로 이동하는 방식으로 대신한다.
+function repoActionsUrl() {
+  try {
+    const account = location.hostname.split(".")[0];
+    const repo = location.pathname.split("/").filter(Boolean)[0];
+    if (!account || !repo) return null;
+    return `https://github.com/${account}/${repo}/actions`;
+  } catch {
+    return null;
+  }
+}
 const STATUS_LABEL = {
   ok: "정상", timeout: "타임아웃", unauthorized: "거절(401/403)",
   rate_limited: "호출 제한", network_error: "오프라인", invalid_shape: "형식 변경",
@@ -270,15 +280,20 @@ function renderLog() {
 function renderBanner(record) {
   const holder = document.getElementById("banner-holder");
   if (!record || record.status === "ok") { holder.innerHTML = ""; return; }
-  const info = FAILURE_INFO[record.status] || { msg: record.detail, action: "retry_now" };
+  const info = FAILURE_INFO[record.status] || { msg: record.detail, action: "actions_link" };
+  const actionsUrl = repoActionsUrl();
 
   let actionHtml = "";
-  if (info.action === "retry_now") {
-    actionHtml = `<button id="retry-btn">지금 다시 시도</button>`;
+  if (info.action === "actions_link") {
+    actionHtml = actionsUrl
+      ? `<a class="btn" href="${actionsUrl}" target="_blank" rel="noopener">Actions에서 지금 다시 실행</a>`
+      : `<span style="color:var(--text-muted);">다음 자동 수집(하루 1회)까지 기다려 주세요.</span>`;
   } else if (info.action === "link") {
     actionHtml = `<a class="btn" href="https://goldprice.dev/docs" target="_blank" rel="noopener">출처 문서 확인</a>`;
-  } else if (info.action === "countdown") {
-    actionHtml = `<span class="countdown" id="countdown-text">60초 후 다시 시도 가능</span> <button id="retry-btn" disabled>다시 시도</button>`;
+  } else if (info.action === "actions_link_countdown") {
+    actionHtml = `<span class="countdown">약 1분 후 자동으로 풀릴 것으로 예상</span> ` + (actionsUrl
+      ? `<a class="btn" href="${actionsUrl}" target="_blank" rel="noopener">지금 바로 확인하려면 Actions 열기</a>`
+      : "");
   } else if (info.action === "report") {
     actionHtml = `<button id="report-btn">오류 세부정보 복사</button>`;
   }
@@ -287,28 +302,10 @@ function renderBanner(record) {
     <div class="banner">
       <div class="msg">현재 값 확인 실패 (${STATUS_LABEL[record.status] || record.status}): ${info.msg}</div>
       <div class="action-row">${actionHtml}</div>
-      <div id="live-note"></div>
     </div>
   `;
 
-  if (info.action === "retry_now") {
-    document.getElementById("retry-btn").addEventListener("click", () => attemptLiveRetry("retry-btn", "live-note"));
-  } else if (info.action === "countdown") {
-    let remaining = 60;
-    const countdownEl = document.getElementById("countdown-text");
-    const btn = document.getElementById("retry-btn");
-    const timer = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) {
-        clearInterval(timer);
-        countdownEl.textContent = "다시 시도 가능";
-        btn.disabled = false;
-        btn.addEventListener("click", () => attemptLiveRetry("retry-btn", "live-note"));
-      } else {
-        countdownEl.textContent = `${remaining}초 후 다시 시도 가능`;
-      }
-    }, 1000);
-  } else if (info.action === "report") {
+  if (info.action === "report") {
     document.getElementById("report-btn").addEventListener("click", () => {
       const detail = `status=${record.status}\ndetail=${record.detail}\nhttp_status=${record.http_status}\nfetched_at_utc=${record.fetched_at_utc}`;
       if (navigator.clipboard) {
@@ -319,35 +316,6 @@ function renderBanner(record) {
     });
   }
 }
-
-async function attemptLiveRetry(btnId, noteId) {
-  const note = document.getElementById(noteId);
-  const btn = document.getElementById(btnId);
-  const originalBtnText = btn ? btn.textContent : "";
-  if (btn) { btn.disabled = true; btn.textContent = "확인 중…"; }
-  note.style.display = "block";
-  note.style.color = "var(--text-muted)";
-  note.textContent = "출처에 다시 확인하는 중…";
-  try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(SOURCE_URL, { signal: controller.signal });
-    clearTimeout(t);
-    if (!res.ok) throw new Error("http " + res.status);
-    const json = await res.json();
-    const livePrice = typeof json.price === "string" ? parseFloat(json.price) : NaN;
-    if (!Number.isFinite(livePrice) || typeof json.computed_at !== "string") throw new Error("shape");
-    note.style.color = "var(--gold)";
-    note.textContent = `방금 확인: ${fmtWon(livePrice)}원 (참고용 — data/history.json에는 저장되지 않으며, 정식 일별 기록은 다음 자동 수집 때만 저장됩니다)`;
-    if (btn) { btn.disabled = false; btn.textContent = originalBtnText === "지금 다시 시도" ? "다시 확인함" : originalBtnText; }
-  } catch (e) {
-    note.style.color = "var(--fail)";
-    note.textContent = "지금은 다시 확인할 수 없습니다. 잠시 후 다시 시도하거나 다음 자동 수집을 기다려 주세요.";
-    if (btn) { btn.disabled = false; btn.textContent = originalBtnText; }
-  }
-}
-
-document.getElementById("live-check-btn").addEventListener("click", () => attemptLiveRetry("live-check-btn", "live-check-note"));
 
 function renderValue() {
   const record = HISTORY.length > 0 ? HISTORY[HISTORY.length - 1] : null;
