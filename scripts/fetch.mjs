@@ -14,7 +14,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 
-const SOURCE_URL = "https://api.goldprice.dev/v1/prices?symbol=XAU-KRW-SPOT";
+const SOURCE_URL = "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT";
 const SOURCE_NAME = "goldprice.dev";
 const UNIT_LABEL = "KRW / 1 트로이온스(XAU)";
 const TIMEOUT_MS = 8000;
@@ -116,14 +116,16 @@ async function classifyAndFetch() {
     };
   }
 
-  const price = json?.price;
+  // 원천 응답은 price를 "5915004.03"처럼 숫자가 아닌 문자열로 준다.
+  const priceRaw = json?.price;
   const computedAt = json?.computed_at;
+  const priceNum = typeof priceRaw === "string" ? parseFloat(priceRaw) : NaN;
 
-  if (typeof price !== "number" || typeof computedAt !== "string") {
+  if (!Number.isFinite(priceNum) || typeof computedAt !== "string") {
     return {
       status: "invalid_shape",
       http_status: res.status,
-      detail: `예상한 필드(price 숫자, computed_at 문자열)가 없습니다. 받은 값 일부: ${JSON.stringify(
+      detail: `예상한 필드(price 숫자 문자열, computed_at 문자열)가 없습니다. 받은 값 일부: ${JSON.stringify(
         { price: json?.price, computed_at: json?.computed_at }
       ).slice(0, 200)}`,
       timestamp_utc: nowIso,
@@ -133,10 +135,11 @@ async function classifyAndFetch() {
   return {
     status: "ok",
     http_status: res.status,
-    detail: `1 트로이온스 = ${price.toLocaleString("ko-KR")} KRW`,
+    detail: `1 트로이온스 = ${priceNum.toLocaleString("ko-KR")} KRW`,
     timestamp_utc: nowIso,
     raw: {
-      price,
+      price: priceNum, // 파싱된 숫자값 (원본은 문자열)
+      price_source_string: priceRaw, // 원천이 준 그대로의 문자열 (검증용 보존)
       computed_at: computedAt,
       is_stale: json?.is_stale ?? null,
     },
