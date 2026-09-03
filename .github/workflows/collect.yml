@@ -1,0 +1,37 @@
+name: Collect daily gold price
+
+on:
+  schedule:
+    # 매일 KST 00:05 (UTC 전날 15:05)에 실행
+    - cron: "5 15 * * *"
+  workflow_dispatch: {} # 수동 실행 버튼 (Actions 탭에서 즉시 기록 가능)
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch and record
+        run: node scripts/fetch.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "status-bot"
+          git config user.email "status-bot@users.noreply.github.com"
+          git add data/history.json data/last_good.json
+          if git diff --cached --quiet; then
+            echo "변경 사항 없음, 커밋 생략"
+          else
+            git commit -m "chore: record gold price ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          fi
