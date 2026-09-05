@@ -52,5 +52,23 @@
       "computed_at": "2026-09-04T15:11:01.813785+00:00",
       "is_stale": false
     }
+  },
+  {
+    "date": "2026-09-06",
+    "fetched_at_utc": "2026-09-05T15:11:05.903Z",
+    "status": "ok",
+    "http_status": 200,
+    "detail": "1 트로이온스 = 5,982,313.818 KRW",
+    "unit": "KRW / 1 트로이온스(XAU)",
+    "source_url": "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT",
+    "source_name": "goldprice.dev",
+    "value": 5982313.81825,
+    "source_time_utc": "2026-09-05T15:11:03.001389+00:00",
+    "raw": {
+      "price": 5982313.81825,
+      "price_source_string": "5982313.81825",
+      "computed_at": "2026-09-05T15:11:03.001389+00:00",
+      "is_stale": false
+    }
   }
 ]
