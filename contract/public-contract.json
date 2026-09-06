@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "contract_version": "2.0.0",
+  "package_id": "aleph-t04-real-information-board-public-contract-v2",
+  "task_id": "T04",
+  "task_title_ko": "오늘의 진짜 정보판 — 데이터가 안 올 때",
+  "condition_registry": "criterion-registry.json",
+  "condition_count": 35,
+  "data_policy": {
+    "fixtures": "synthetic-only",
+    "live_source": "non-personal-public-dynamic-data",
+    "real_personal_data_in_public_review_or_submission": "forbidden",
+    "secret_plaintext_in_browser_deployment_network_git_or_submission": "forbidden"
+  },
+  "review_access": {
+    "account_creation_required": false,
+    "login_required": false,
+    "authentication_required": false,
+    "invitation_required": false,
+    "password_required": false,
+    "oauth_required": false,
+    "captcha_required": false
+  },
+  "fixture_contract": {
+    "version": "1.1.0",
+    "manifest": "fixture-manifest.json",
+    "schema": "fixture.schema.json",
+    "normalized_reading_schema": "normalized-reading.schema.json",
+    "reading_status_schema": "reading-status.schema.json",
+    "reference_adapter": "adapter-reset.example.js",
+    "fixture_files": [
+      "fixtures/auth-401.json",
+      "fixtures/normal-d1-a.json",
+      "fixtures/normal-d1-b.json",
+      "fixtures/normal-d2.json",
+      "fixtures/offline.json",
+      "fixtures/rate-429.json",
+      "fixtures/recover-d2.json",
+      "fixtures/schema-break.json",
+      "fixtures/timeout.json"
+    ],
+    "success_sequence": [
+      "T04-NORMAL-D1-A",
+      "T04-NORMAL-D1-B",
+      "T04-NORMAL-D2"
+    ],
+    "failure_baseline_sequence": [
+      "T04-NORMAL-D1-A",
+      "T04-NORMAL-D1-B"
+    ],
+    "failure_fixtures": [
+      "T04-TIMEOUT",
+      "T04-AUTH-401",
+      "T04-RATE-429",
+      "T04-OFFLINE",
+      "T04-SCHEMA-BREAK"
+    ],
+    "recovery_sequence": [
+      "T04-NORMAL-D1-A",
+      "T04-NORMAL-D1-B",
+      "T04-TIMEOUT",
+      "T04-RECOVER-D2"
+    ],
+    "reset_semantics": "합성 평가 상태만 빈 상태로 되돌린다.",
+    "upstream_auth_fixture_scope": "T04-AUTH-401은 외부 데이터 원천의 401 거절이다. 제출 결과물의 로그인이나 인증을 시험하거나 허용하지 않는다."
+  },
+  "live_evidence_boundary": {
+    "fixture_dates_are_real_dates": false,
+    "actual_live_dates_required": 2,
+    "actual_live_conditions": [
+      "T04-C03",
+      "T04-C04",
+      "T04-C05",
+      "T04-C06",
+      "T04-C07",
+      "T04-C08",
+      "T04-C09",
+      "T04-C10",
+      "T04-C22",
+      "T04-C23",
+      "T04-C24"
+    ],
+    "external_api_recheck_required_at_grading_time": false,
+    "historical_external_response_match_required": false,
+    "sealed_receipt_contract": {
+      "canonical_kind": "t04_day",
+      "exact_receipt_count": 2,
+      "distinct_date_rule": "convert each server_created_at to Asia/Seoul; the two local dates must differ",
+      "payload_fields": ["source_url", "source_observed_at", "normalized_value", "unit"],
+      "comparison_sources": ["sealed_receipt_payload", "preserved_daily_storage", "displayed_value"],
+      "delta_recalculation": "order the two receipts by server_created_at and recompute the displayed day-over-day change from normalized_value and unit",
+      "grading_boundary": "do not refetch or require a match to a historical external upstream response"
+    },
+    "student_generated_evidence_zip_required": false,
+    "note_ko": "합성 시계의 D1/D2는 저장·실패·계산 경로를 재현할 뿐 실제 공개 원천 조회와 서로 다른 실제 날짜 2건을 대신하지 않는다."
+  },
+  "workflow_boundary": {
+    "submission_blocks_on_local_grade": false,
+    "instructor_approval_blocks_on_local_grade": false,
+    "master_approval_blocks_on_local_grade": false,
+    "local_batch_grading_timing": "after-master-approval-when-owner-runs-it"
+  },
+  "manifest": "asset-manifest.json"
+}

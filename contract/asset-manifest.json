@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "package_id": "aleph-t04-real-information-board-public-contract-v2",
+  "hash_algorithm": "sha256",
+  "self_excluded": "asset-manifest.json",
+  "delivery_archive": {
+    "path": "t04-real-information-board-public-v1.zip",
+    "entry_root": "t04-real-information-board-public-v1/",
+    "entry_count": 18,
+    "contains_asset_manifest": true,
+    "listed_in_files": false,
+    "exclusion_reason": "The archive cannot list or hash itself without a circular dependency.",
+    "deterministic_zip_v1": {
+      "entry_order": "ascending UTF-8 byte order",
+      "compression": "raw DEFLATE level 9",
+      "timestamp": "2026-08-24T00:00:00",
+      "utf8_names": true
+    }
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5017,
+      "sha256": "b9d0d4c076f8c1e1d9faf1a42d5bea42b0c47e5018e8f46af31f3798adc8d80c"
+    },
+    {
+      "path": "adapter-reset.example.js",
+      "bytes": 7702,
+      "sha256": "94617445e79e165a9cdfb80926c458e70cb61a44c2e856be71b3d3594e6a696a"
+    },
+    {
+      "path": "criterion-registry.json",
+      "bytes": 14360,
+      "sha256": "f645270a7872f21870846cdb6df1af46c86d315cb16d61b41482ff08f75c1688"
+    },
+    {
+      "path": "fixture-manifest.json",
+      "bytes": 1631,
+      "sha256": "97e0e7999135f943912b3ac24d3d2855b2a22a778fde52b455a50dc2e0bc7e68"
+    },
+    {
+      "path": "fixture.schema.json",
+      "bytes": 1869,
+      "sha256": "022a0f279fc740a04f8c04989cb7fa242456313f826b848224009709b36f9109"
+    },
+    {
+      "path": "fixtures/auth-401.json",
+      "bytes": 591,
+      "sha256": "43137419d6cc220dabb2d2a99e63c369070f8686393d34fd3eea741d0b1ae5fd"
+    },
+    {
+      "path": "fixtures/normal-d1-a.json",
+      "bytes": 939,
+      "sha256": "14bcc9267f40b4bec2ecb87f2886abbe0536905ef6d398d21ab4041f3410f696"
+    },
+    {
+      "path": "fixtures/normal-d1-b.json",
+      "bytes": 982,
+      "sha256": "4a9a688a94acbf8decba59f6f01991121fd03a322364239606f39872bab866b1"
+    },
+    {
+      "path": "fixtures/normal-d2.json",
+      "bytes": 945,
+      "sha256": "8194b41d81838446d99611b34343b12b10afcf8a3e7a56d8a5e5ad6f7afc86f4"
+    },
+    {
+      "path": "fixtures/offline.json",
+      "bytes": 539,
+      "sha256": "61760d554088196e2979cfde2509482fc5dfe1f2c5772e92a824ce8dde12446d"
+    },
+    {
+      "path": "fixtures/rate-429.json",
+      "bytes": 643,
+      "sha256": "788652bf624f91d00b35843372bc5c6dcc810712a0bf29e16c0f337052c37a11"
+    },
+    {
+      "path": "fixtures/recover-d2.json",
+      "bytes": 979,
+      "sha256": "fecab12b34fac4d7c053083bad220748fceca88f91e2b5a024907a34e6620b04"
+    },
+    {
+      "path": "fixtures/schema-break.json",
+      "bytes": 918,
+      "sha256": "21bef6532b1f9a008fcf2f4d97b7330125eaeb5de8414fafde2bb991a1b935ee"
+    },
+    {
+      "path": "fixtures/timeout.json",
+      "bytes": 548,
+      "sha256": "4516eca5129dcce6c43d06d76c37889a9dd27c7d4f70371c63f9d9019db3aceb"
+    },
+    {
+      "path": "normalized-reading.schema.json",
+      "bytes": 1448,
+      "sha256": "fd073a784a38f9965620b51c2c100fb6b2bf0d9b4112c0b5c9d9f6c6703fdaa8"
+    },
+    {
+      "path": "public-contract.json",
+      "bytes": 3855,
+      "sha256": "647d2ea2ce97005aebcbe9ccd62f380bc6efb10967729464bb1df67b3588edeb"
+    },
+    {
+      "path": "reading-status.schema.json",
+      "bytes": 908,
+      "sha256": "b84ab1cc8430384ce31de6d675d34ac1458bfeaabd9cacd1017c5cac642a7c1e"
+    }
+  ]
+}

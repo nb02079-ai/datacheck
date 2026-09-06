@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aleph://schemas/t04/reading-status/v1",
+  "title": "ALEPH T04 freshness and error state",
+  "description": "마지막 정상값의 신선도와 이번 조회의 오류 원인을 서로 다른 필드로 보존합니다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["freshness", "error_code"],
+  "properties": {
+    "freshness": {
+      "enum": ["fresh", "stale"]
+    },
+    "error_code": {
+      "enum": ["none", "timeout", "auth", "rate_limit", "offline", "schema_error"]
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "freshness": { "const": "fresh" },
+        "error_code": { "const": "none" }
+      }
+    },
+    {
+      "properties": {
+        "freshness": { "const": "stale" },
+        "error_code": { "enum": ["timeout", "auth", "rate_limit", "offline", "schema_error"] }
+      }
+    }
+  ]
+}

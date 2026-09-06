@@ -1,0 +1,430 @@
+{
+  "schema_version": 2,
+  "registry_id": "aleph.t04.today-real-information-board.current",
+  "task_id": "T04",
+  "course_package_id": "aleph-free-course-vnext-20260823",
+  "source_path": "scripts/course/free-course-vnext-20260823.json#tasks[code=T04].completionCriteria",
+  "condition_id_pattern": "^T04-C(?:0[1-9]|[12][0-9]|3[0-5])$",
+  "required_count": 35,
+  "evaluation_rule": "35개 조건을 각각 MET 또는 NOT_MET로 전수 판정한다. 관측할 수 없는 조건은 추정해 MET로 만들지 않는다.",
+  "progress_rule": "제출·강사 승인·마스터 승인은 로컬 채점 결과와 분리하며 채점은 이후 일괄 실행할 수 있다.",
+  "score_policy": "가중치와 정규화는 이 공개 fixture 계약에 포함하지 않는다.",
+  "access_policy": {
+    "submitted_artifact": "결과물과 소스는 계정 생성·로그인·인증·초대·비밀번호·OAuth·CAPTCHA 없이 새 시크릿 창에서 열려야 한다.",
+    "upstream_auth_fixture": "T04-AUTH-401은 외부 데이터 원천의 401 거절만 합성하며 제출 앱의 로그인·인증을 허용하지 않는다."
+  },
+  "fixture_policy": {
+    "data": "synthetic-only",
+    "immutable_fixture_contract_version": "1.1.0",
+    "live_requirements_not_replaced": [
+      "T04-C03",
+      "T04-C04",
+      "T04-C05",
+      "T04-C06",
+      "T04-C07",
+      "T04-C08",
+      "T04-C09",
+      "T04-C10",
+      "T04-C22",
+      "T04-C23",
+      "T04-C24"
+    ],
+    "note": "fixture 날짜는 합성 시계다. 실제 날짜 두 건이나 실제 공개 원천 조회의 증거가 아니다."
+  },
+  "criteria": [
+    {
+      "id": "T04-C01",
+      "ordinal": 1,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 계정 생성 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C02",
+      "ordinal": 2,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 로그인 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C03",
+      "ordinal": 3,
+      "required": true,
+      "condition_text_ko": "비개인 공개 원천의 실제 동적 값을 조회할 수 있다.",
+      "verification_mode": "live_receipt_and_review",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C04",
+      "ordinal": 4,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 값이 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C05",
+      "ordinal": 5,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 단위가 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C06",
+      "ordinal": 6,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 출처가 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C07",
+      "ordinal": 7,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 출처 시각이 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C08",
+      "ordinal": 8,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 조회 시각이 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C09",
+      "ordinal": 9,
+      "required": true,
+      "condition_text_ko": "실제 조회 화면에 기준 시간대가 표시된다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C10",
+      "ordinal": 10,
+      "required": true,
+      "condition_text_ko": "정상 한 건의 원자료·저장값·화면값이 일치한다.",
+      "verification_mode": "live_and_deterministic",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C11",
+      "ordinal": 11,
+      "required": true,
+      "condition_text_ko": "브라우저 코드·배포 파일·네트워크 응답·Git 기록에 비밀키 원문이 0건이다.",
+      "verification_mode": "source_and_runtime_scan",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C12",
+      "ordinal": 12,
+      "required": true,
+      "condition_text_ko": "느린 외부 응답을 합성 재생하면 별도 실패 상태가 표시된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-TIMEOUT"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C13",
+      "ordinal": 13,
+      "required": true,
+      "condition_text_ko": "외부 원천의 401 또는 403 거절을 합성 재생하면 별도 실패 상태가 표시된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-AUTH-401"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C14",
+      "ordinal": 14,
+      "required": true,
+      "condition_text_ko": "외부 원천의 호출 제한을 합성 재생하면 별도 실패 상태가 표시된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-RATE-429"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C15",
+      "ordinal": 15,
+      "required": true,
+      "condition_text_ko": "오프라인 상태를 합성 재생하면 별도 실패 상태가 표시된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-OFFLINE"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C16",
+      "ordinal": 16,
+      "required": true,
+      "condition_text_ko": "응답 형식 변경을 합성 재생하면 별도 실패 상태가 표시된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-SCHEMA-BREAK"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C17",
+      "ordinal": 17,
+      "required": true,
+      "condition_text_ko": "실패 뒤 마지막 정상값이 지워지지 않는다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-TIMEOUT",
+        "T04-AUTH-401",
+        "T04-RATE-429",
+        "T04-OFFLINE",
+        "T04-SCHEMA-BREAK"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C18",
+      "ordinal": 18,
+      "required": true,
+      "condition_text_ko": "실패 뒤 마지막 정상값에 오래된 값 표시가 붙는다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-TIMEOUT",
+        "T04-AUTH-401",
+        "T04-RATE-429",
+        "T04-OFFLINE",
+        "T04-SCHEMA-BREAK"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C19",
+      "ordinal": 19,
+      "required": true,
+      "condition_text_ko": "실패 상태에 다시 시도 행동이 보이며, 공개 asset T04-RECOVER-D2를 재생하면 상태가 fresh, error_code가 none으로 돌아오고 다음 날짜의 일별 기록이 정확히 한 건 추가된다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-TIMEOUT",
+        "T04-AUTH-401",
+        "T04-RATE-429",
+        "T04-OFFLINE",
+        "T04-SCHEMA-BREAK",
+        "T04-RECOVER-D2"
+      ],
+      "expected_recovery_transition": {
+        "failure_fixture_id": "T04-TIMEOUT",
+        "recovery_fixture_id": "T04-RECOVER-D2",
+        "before_retry": {
+          "freshness": "stale",
+          "error_code": "timeout",
+          "daily_row_count": 1,
+          "last_good_value": 105,
+          "record_date": "2026-08-24"
+        },
+        "after_retry": {
+          "freshness": "fresh",
+          "error_code": "none",
+          "daily_row_count": 2,
+          "new_next_date_rows": 1,
+          "stored_value": 120,
+          "record_date": "2026-08-25"
+        }
+      },
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C20",
+      "ordinal": 20,
+      "required": true,
+      "condition_text_ko": "기준 시간대의 같은 날짜에 여러 번 성공해도 일별 기록은 한 건이다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A",
+        "T04-NORMAL-D1-B"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C21",
+      "ordinal": 21,
+      "required": true,
+      "condition_text_ko": "기준 시간대의 다음 날짜에 성공하면 새 일별 기록이 생긴다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A",
+        "T04-NORMAL-D1-B",
+        "T04-NORMAL-D2"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C22",
+      "ordinal": 22,
+      "required": true,
+      "condition_text_ko": "서로 다른 Asia/Seoul 실제 날짜에 조회한 공개 원천 기록이 정확히 2건 보존되어 있다.",
+      "verification_mode": "live_receipt_and_review",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C23",
+      "ordinal": 23,
+      "required": true,
+      "condition_text_ko": "두 기록 각각의 공개 원천 URL·원천 관측 시각·정규화 값·단위가 저장된 일별 값과 화면 표시값에서 일치한다.",
+      "verification_mode": "live_receipt_and_review",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C24",
+      "ordinal": 24,
+      "required": true,
+      "condition_text_ko": "두 기록을 조회 날짜순으로 놓고 같은 계산 규칙으로 어제 대비 변화값을 다시 계산하면 화면값과 일치한다.",
+      "verification_mode": "live_receipt_and_review",
+      "fixture_ids": [
+        "T04-NORMAL-D1-A",
+        "T04-NORMAL-D1-B",
+        "T04-NORMAL-D2"
+      ],
+      "fixture_limit": "합성 fixture는 계산 경로만 보조한다. 서로 다른 실제 날짜 두 건과 실제 값 재계산은 별도 live 증거로 확인한다."
+    },
+    {
+      "id": "T04-C25",
+      "ordinal": 25,
+      "required": true,
+      "condition_text_ko": "공개 심사 화면과 제출 파일에 실제 개인정보 또는 개인 기록이 0건이다.",
+      "verification_mode": "source_and_runtime_scan",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C26",
+      "ordinal": 26,
+      "required": true,
+      "condition_text_ko": "다섯 실패 재생에는 합성 시험값만 사용한다.",
+      "verification_mode": "deterministic_replay",
+      "fixture_ids": [
+        "T04-TIMEOUT",
+        "T04-AUTH-401",
+        "T04-RATE-429",
+        "T04-OFFLINE",
+        "T04-SCHEMA-BREAK"
+      ],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C27",
+      "ordinal": 27,
+      "required": true,
+      "condition_text_ko": "짧은 확인 방법에 ① 어디로 가나요, ② 3단계 이내 무엇을 하나요, ③ 무엇이 보이면 통과인가요, ④ 안 될 때 무엇이 보이나요가 구분되어 있다.",
+      "verification_mode": "submission_text",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C28",
+      "ordinal": 28,
+      "required": true,
+      "condition_text_ko": "제출문에 ① AI에게 맡긴 일, ② 학생이 직접 판단한 일, ③ AI 제안을 따르지 않은 일(없으면 없었던 이유)이 구분되어 있다.",
+      "verification_mode": "submission_text",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C29",
+      "ordinal": 29,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 인증 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C30",
+      "ordinal": 30,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 초대 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C31",
+      "ordinal": 31,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 비밀번호 입력 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C32",
+      "ordinal": 32,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 OAuth 연결 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C33",
+      "ordinal": 33,
+      "required": true,
+      "condition_text_ko": "제출한 모든 URL(결과물·소스)은 CAPTCHA 통과 없이 새 시크릿 창에서 열린다.",
+      "verification_mode": "public_access",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C34",
+      "ordinal": 34,
+      "required": true,
+      "condition_text_ko": "결과물 URL 필드에 HTTPS URL 한 개가 제출되어 있다.",
+      "verification_mode": "submission_field",
+      "fixture_ids": [],
+      "fixture_limit": null
+    },
+    {
+      "id": "T04-C35",
+      "ordinal": 35,
+      "required": true,
+      "condition_text_ko": "소스 URL 필드에 HTTPS URL 한 개가 제출되어 있고, URL에는 전체 소스 상태를 다시 받을 수 있는 40자리 또는 64자리 소문자 16진수 commit 식별자가 포함되어 있다.",
+      "verification_mode": "submission_field",
+      "fixture_ids": [],
+      "fixture_limit": null
+    }
+  ]
+}

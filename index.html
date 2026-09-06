@@ -51,7 +51,6 @@
     display: inline-block;
   }
   .banner button:hover, .banner a.btn:hover { border-color: var(--text-muted); }
-  .banner button:disabled { opacity: 0.5; cursor: default; }
   .banner .countdown { font-family: var(--mono); font-size: 12px; color: var(--stale); }
 
   .value-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
@@ -131,39 +130,27 @@
 </div>
 
 <script>
-const SOURCE_URL = "https://api.goldprice.dev/v1/spot/XAU-KRW-SPOT";
-
-const FAILURE_INFO = {
-  timeout: {
-    msg: "출처 응답이 느립니다.",
-    action: "actions_link",
-  },
-  network_error: {
-    msg: "네트워크에 연결할 수 없습니다.",
-    action: "actions_link",
-  },
-  http_error: {
-    msg: "출처에서 예기치 못한 오류가 발생했습니다.",
-    action: "actions_link",
-  },
-  unauthorized: {
-    msg: "출처가 요청을 거부했습니다. 재시도해도 바로 해결되지 않습니다.",
-    action: "link",
-  },
-  rate_limited: {
-    msg: "호출 한도를 초과했습니다. 시간이 지나면 자동으로 풀립니다.",
-    action: "actions_link_countdown",
-  },
-  invalid_shape: {
-    msg: "출처 응답 형식이 바뀐 것 같습니다. 자동 복구가 어려울 수 있습니다.",
-    action: "report",
-  },
+// 공식 오류 코드 체계 (reading-status.schema.json과 동일):
+// freshness: fresh | stale
+// error_code: none | timeout | auth | rate_limit | offline | schema_error
+const STATUS_LABEL = {
+  none: "정상", timeout: "타임아웃", auth: "거절(401/403)",
+  rate_limit: "호출 제한", offline: "오프라인", schema_error: "형식 변경",
 };
 
-// GitHub Pages 주소(예: nb02079-ai.github.io/datacheck/)에서
-// 계정명·저장소명을 읽어 그 저장소의 실제 Actions 페이지 링크를 만든다.
-// 브라우저에서 goldprice.dev를 직접 재호출하는 건 CORS로 막혀 있어 항상 실패하므로,
-// "다시 시도"는 실제로 재수집이 가능한 GitHub Actions 페이지로 이동하는 방식으로 대신한다.
+const UNIT_DISPLAY = { "KRW/ozt": "KRW / 1 트로이온스(XAU)" };
+
+const FAILURE_INFO = {
+  timeout: { msg: "출처 응답이 느립니다.", action: "actions_link" },
+  offline: { msg: "네트워크에 연결할 수 없습니다.", action: "actions_link" },
+  auth: { msg: "출처가 요청을 거부했습니다. 재시도해도 바로 해결되지 않습니다.", action: "link" },
+  rate_limit: { msg: "호출 한도를 초과했습니다. 시간이 지나면 자동으로 풀립니다.", action: "actions_link_countdown" },
+  schema_error: { msg: "출처 응답 형식이 바뀐 것 같습니다. 자동 복구가 어려울 수 있습니다.", action: "report" },
+};
+
+// goldprice.dev는 브라우저 직접 호출(CORS)을 허용하지 않는다 — 실측으로 확인됨.
+// 그래서 "다시 시도"는 브라우저에서 재조회를 시도하는 대신, 이 페이지의 실제
+// 저장소 Actions 페이지로 이동하는 링크로 대신한다 (거기서 재수집이 실제로 가능하다).
 function repoActionsUrl() {
   try {
     const account = location.hostname.split(".")[0];
@@ -174,14 +161,8 @@ function repoActionsUrl() {
     return null;
   }
 }
-const STATUS_LABEL = {
-  ok: "정상", timeout: "타임아웃", unauthorized: "거절(401/403)",
-  rate_limited: "호출 제한", network_error: "오프라인", invalid_shape: "형식 변경",
-  http_error: "오류",
-};
 
-let HISTORY = [];
-let LAST_GOOD = null;
+let STATE = null;
 
 function fmtWon(n) {
   return n === null || n === undefined ? "—" : Math.round(n).toLocaleString("ko-KR");
@@ -203,59 +184,56 @@ function daysBetweenKst(dateStrA, dateStrB) {
 
 function renderChart() {
   const holder = document.getElementById("chart-holder");
-  const okPoints = HISTORY.filter((r) => r.status === "ok");
+  const runLog = (STATE && STATE.run_log) || [];
+  const okPoints = runLog.filter((r) => r.outcome === "success");
   if (okPoints.length === 0) {
     holder.innerHTML = '<div id="chart-empty">표시할 정상 기록이 아직 없습니다.</div>';
     return;
   }
-  const values = okPoints.map((r) => r.value);
+  const values = okPoints.map((r) => r.normalized_value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
 
-  const n = HISTORY.length;
+  const n = runLog.length;
   const marginL = 74, marginR = 20, top = 20, bottom = 110;
-  const xFor = (i) => n <= 1 ? (marginL + 580) / 2 : marginL + ((580 - marginR - marginL) * i) / (n - 1);
+  const xFor = (i) => (n <= 1 ? (marginL + 580) / 2 : marginL + ((580 - marginR - marginL) * i) / (n - 1));
   const yFor = (v) => bottom - ((v - min) / span) * (bottom - top);
 
   let svg = `<svg viewBox="0 0 600 160" style="width:100%;height:auto;" role="img" aria-label="일별 금 시세 추이 그래프">`;
-  // gridlines
   [top, (top + bottom) / 2, bottom].forEach((y, idx) => {
     const v = max - (idx * span) / 2;
     svg += `<line x1="${marginL}" y1="${y}" x2="580" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
     svg += `<text x="${marginL - 8}" y="${y + 4}" fill="var(--text-muted)" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="end">${fmtWonK(v)}</text>`;
   });
 
-  // line segments (dashed across any non-ok gap)
   for (let i = 0; i < n - 1; i++) {
-    const a = HISTORY[i], b = HISTORY[i + 1];
-    if (a.status !== "ok" || b.status !== "ok") continue;
-    svg += `<line x1="${xFor(i)}" y1="${yFor(a.value)}" x2="${xFor(i + 1)}" y2="${yFor(b.value)}" stroke="var(--gold)" stroke-width="2"/>`;
+    const a = runLog[i], b = runLog[i + 1];
+    if (a.outcome !== "success" || b.outcome !== "success") continue;
+    svg += `<line x1="${xFor(i)}" y1="${yFor(a.normalized_value)}" x2="${xFor(i + 1)}" y2="${yFor(b.normalized_value)}" stroke="var(--gold)" stroke-width="2"/>`;
   }
-  // dashed bridge across a failed run: connect nearest ok neighbors
   for (let i = 0; i < n; i++) {
-    if (HISTORY[i].status === "ok") continue;
+    if (runLog[i].outcome === "success") continue;
     let prevOk = -1, nextOk = -1;
-    for (let j = i - 1; j >= 0; j--) if (HISTORY[j].status === "ok") { prevOk = j; break; }
-    for (let j = i + 1; j < n; j++) if (HISTORY[j].status === "ok") { nextOk = j; break; }
-    if (prevOk >= 0) svg += `<line x1="${xFor(prevOk)}" y1="${yFor(HISTORY[prevOk].value)}" x2="${xFor(i)}" y2="${(yFor(HISTORY[prevOk].value) + (nextOk >= 0 ? yFor(HISTORY[nextOk].value) : yFor(HISTORY[prevOk].value))) / 2}" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4,4"/>`;
-    if (nextOk >= 0) svg += `<line x1="${xFor(i)}" y1="${(yFor(HISTORY[prevOk >= 0 ? prevOk : nextOk].value) + yFor(HISTORY[nextOk].value)) / 2}" x2="${xFor(nextOk)}" y2="${yFor(HISTORY[nextOk].value)}" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4,4"/>`;
+    for (let j = i - 1; j >= 0; j--) if (runLog[j].outcome === "success") { prevOk = j; break; }
+    for (let j = i + 1; j < n; j++) if (runLog[j].outcome === "success") { nextOk = j; break; }
+    if (prevOk >= 0) svg += `<line x1="${xFor(prevOk)}" y1="${yFor(runLog[prevOk].normalized_value)}" x2="${xFor(i)}" y2="${(yFor(runLog[prevOk].normalized_value) + (nextOk >= 0 ? yFor(runLog[nextOk].normalized_value) : yFor(runLog[prevOk].normalized_value))) / 2}" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4,4"/>`;
+    if (nextOk >= 0) svg += `<line x1="${xFor(i)}" y1="${(yFor(runLog[prevOk >= 0 ? prevOk : nextOk].normalized_value) + yFor(runLog[nextOk].normalized_value)) / 2}" x2="${xFor(nextOk)}" y2="${yFor(runLog[nextOk].normalized_value)}" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="4,4"/>`;
   }
 
-  // points + labels
-  HISTORY.forEach((r, i) => {
+  runLog.forEach((r, i) => {
     const x = xFor(i);
-    if (r.status === "ok") {
-      const y = yFor(r.value);
+    if (r.outcome === "success") {
+      const y = yFor(r.normalized_value);
       const isLast = i === n - 1;
       svg += `<circle cx="${x}" cy="${y}" r="${isLast ? 4 : 3}" fill="var(--gold)"${isLast ? ' stroke="var(--bg)" stroke-width="1.5"' : ""}/>`;
-      svg += `<text x="${x}" y="${y - 10}" fill="${isLast ? "var(--gold)" : "var(--text-muted)"}" font-size="9" font-family="IBM Plex Mono, monospace" text-anchor="middle">${fmtWonK(r.value)}</text>`;
+      svg += `<text x="${x}" y="${y - 10}" fill="${isLast ? "var(--gold)" : "var(--text-muted)"}" font-size="9" font-family="IBM Plex Mono, monospace" text-anchor="middle">${fmtWonK(r.normalized_value)}</text>`;
     } else {
       const yMid = (top + bottom) / 2;
       svg += `<circle cx="${x}" cy="${yMid}" r="3" fill="none" stroke="var(--fail)" stroke-width="2"/>`;
       svg += `<text x="${x}" y="${bottom + 30}" fill="var(--fail)" font-size="9" font-family="IBM Plex Mono, monospace" text-anchor="middle">실패</text>`;
     }
-    svg += `<text x="${x}" y="${bottom + 18}" fill="var(--text-muted)" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="middle">${r.date.slice(5)}</text>`;
+    svg += `<text x="${x}" y="${bottom + 18}" fill="var(--text-muted)" font-size="10" font-family="IBM Plex Mono, monospace" text-anchor="middle">${r.record_date.slice(5)}</text>`;
   });
 
   svg += `</svg>`;
@@ -264,23 +242,25 @@ function renderChart() {
 
 function renderLog() {
   const body = document.getElementById("log-body");
-  if (HISTORY.length === 0) {
+  const runLog = (STATE && STATE.run_log) || [];
+  if (runLog.length === 0) {
     body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">아직 기록이 없습니다.</div>';
     return;
   }
-  body.innerHTML = [...HISTORY].reverse().map((r) => {
-    const ok = r.status === "ok";
+  body.innerHTML = [...runLog].reverse().map((r) => {
+    const ok = r.outcome === "success";
     return `<div class="log-row">
-      <span class="d">${r.date}</span>
-      <span class="v ${ok ? "ok" : "fail"}">${ok ? fmtWon(r.value) + "원" : STATUS_LABEL[r.status] || r.status}</span>
+      <span class="d">${r.record_date}</span>
+      <span class="v ${ok ? "ok" : "fail"}">${ok ? fmtWon(r.normalized_value) + "원" : STATUS_LABEL[r.error_code] || r.error_code}</span>
     </div>`;
   }).join("");
 }
 
-function renderBanner(record) {
+function renderBanner() {
   const holder = document.getElementById("banner-holder");
-  if (!record || record.status === "ok") { holder.innerHTML = ""; return; }
-  const info = FAILURE_INFO[record.status] || { msg: record.detail, action: "actions_link" };
+  const status = STATE && STATE.status;
+  if (!status || status.freshness === "fresh") { holder.innerHTML = ""; return; }
+  const info = FAILURE_INFO[status.error_code] || { msg: "알 수 없는 오류", action: "actions_link" };
   const actionsUrl = repoActionsUrl();
 
   let actionHtml = "";
@@ -291,7 +271,8 @@ function renderBanner(record) {
   } else if (info.action === "link") {
     actionHtml = `<a class="btn" href="https://goldprice.dev/docs" target="_blank" rel="noopener">출처 문서 확인</a>`;
   } else if (info.action === "actions_link_countdown") {
-    actionHtml = `<span class="countdown">약 1분 후 자동으로 풀릴 것으로 예상</span> ` + (actionsUrl
+    const retrySec = (STATE.last_run && STATE.last_run.retry_after_seconds) || 60;
+    actionHtml = `<span class="countdown">약 ${retrySec}초 후 자동으로 풀릴 것으로 예상</span> ` + (actionsUrl
       ? `<a class="btn" href="${actionsUrl}" target="_blank" rel="noopener">지금 바로 확인하려면 Actions 열기</a>`
       : "");
   } else if (info.action === "report") {
@@ -300,14 +281,15 @@ function renderBanner(record) {
 
   holder.innerHTML = `
     <div class="banner">
-      <div class="msg">현재 값 확인 실패 (${STATUS_LABEL[record.status] || record.status}): ${info.msg}</div>
+      <div class="msg">현재 값 확인 실패 (${STATUS_LABEL[status.error_code] || status.error_code}): ${info.msg}</div>
       <div class="action-row">${actionHtml}</div>
     </div>
   `;
 
   if (info.action === "report") {
     document.getElementById("report-btn").addEventListener("click", () => {
-      const detail = `status=${record.status}\ndetail=${record.detail}\nhttp_status=${record.http_status}\nfetched_at_utc=${record.fetched_at_utc}`;
+      const lr = STATE.last_run || {};
+      const detail = `error_code=${status.error_code}\nvirtual_now=${lr.virtual_now}\noutcome=${lr.outcome}`;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(detail).then(() => {
           document.getElementById("report-btn").textContent = "복사됨";
@@ -318,7 +300,8 @@ function renderBanner(record) {
 }
 
 function renderValue() {
-  const record = HISTORY.length > 0 ? HISTORY[HISTORY.length - 1] : null;
+  const current = STATE && STATE.current_reading;
+  const status = STATE && STATE.status;
   const dateLabel = document.getElementById("value-date-label");
   const valueEl = document.getElementById("hero-value");
   const unitEl = document.getElementById("hero-unit");
@@ -327,9 +310,9 @@ function renderValue() {
   const fetchTimeEl = document.getElementById("fetch-time");
   const lastGoodBox = document.getElementById("lastgood-box");
 
-  renderBanner(record);
+  renderBanner();
 
-  if (!record) {
+  if (!current) {
     dateLabel.textContent = "확인된 값 없음";
     valueEl.textContent = "—"; valueEl.classList.add("dim");
     unitEl.textContent = "";
@@ -338,42 +321,42 @@ function renderValue() {
     return;
   }
 
-  const isOk = record.status === "ok";
-  dateLabel.textContent = `${record.date} 기준 확인된 값`;
-  unitEl.textContent = record.unit ? `단위: ${record.unit}` : "";
+  const isFresh = status && status.freshness === "fresh";
+  dateLabel.textContent = isFresh
+    ? `${current.record_date} 기준 확인된 값`
+    : `마지막으로 확인된 값 (${current.record_date} 기준)`;
+  unitEl.textContent = `단위: ${UNIT_DISPLAY[current.unit] || current.unit}`;
 
-  if (isOk) {
-    valueEl.textContent = fmtWon(record.value) + "원";
-    valueEl.classList.remove("dim");
-    sourceTimeEl.textContent = toKst(record.source_time_utc);
-    fetchTimeEl.textContent = toKst(record.fetched_at_utc);
-  } else {
-    valueEl.textContent = "—";
-    valueEl.classList.add("dim");
-    sourceTimeEl.textContent = "확인 불가 (실패)";
-    fetchTimeEl.textContent = toKst(record.fetched_at_utc);
-  }
+  valueEl.textContent = fmtWon(current.normalized_value) + "원";
+  valueEl.classList.toggle("dim", !isFresh);
+  sourceTimeEl.textContent = toKst(current.source_time);
+  fetchTimeEl.textContent = toKst(current.fetched_at);
 
   deltaEl.textContent = ""; deltaEl.className = "delta";
-  if (isOk) {
-    const idx = HISTORY.findIndex((r) => r.date === record.date);
-    const prevOk = [...HISTORY.slice(0, idx)].reverse().find((r) => r.status === "ok");
-    if (prevOk) {
-      const diff = record.value - prevOk.value;
-      const pct = prevOk.value ? (diff / prevOk.value) * 100 : 0;
-      const sign = diff > 0 ? "+" : diff < 0 ? "" : "±";
-      deltaEl.textContent = `전일(${prevOk.date}) 대비 ${sign}${fmtWon(diff)}원 (${sign}${pct.toFixed(2)}%)`;
-      deltaEl.classList.add(diff > 0 ? "up" : diff < 0 ? "down" : "flat");
-    } else {
-      deltaEl.textContent = "비교할 이전 정상 기록 없음";
-      deltaEl.classList.add("flat");
-    }
+  const cmp = STATE.last_comparison;
+  if (cmp && cmp.state === "comparable") {
+    const readings = STATE.daily_readings || [];
+    const idx = readings.findIndex((r) => r.record_date === current.record_date);
+    const prev = idx > 0 ? readings[idx - 1] : null;
+    const diff = cmp.direction === "increase" ? cmp.magnitude : cmp.direction === "decrease" ? -cmp.magnitude : 0;
+    const sign = diff > 0 ? "+" : diff < 0 ? "" : "±";
+    const pctText = prev && prev.normalized_value ? ` (${sign}${((diff / prev.normalized_value) * 100).toFixed(2)}%)` : "";
+    const prevLabel = prev ? `전일(${prev.record_date}) 대비` : "이전 기록 대비";
+    deltaEl.textContent = `${prevLabel} ${sign}${fmtWon(Math.abs(diff) === 0 ? 0 : diff)}원${pctText}`;
+    deltaEl.classList.add(diff > 0 ? "up" : diff < 0 ? "down" : "flat");
+  } else if (cmp && cmp.state === "unit_mismatch") {
+    deltaEl.textContent = "단위가 달라 비교할 수 없음";
+    deltaEl.classList.add("flat");
+  } else {
+    deltaEl.textContent = "비교할 이전 정상 기록 없음";
+    deltaEl.classList.add("flat");
   }
 
-  if (!isOk && LAST_GOOD) {
-    const days = daysBetweenKst(LAST_GOOD.date, record.date);
+  if (!isFresh) {
+    const today = (STATE.last_run && STATE.last_run.virtual_now) ? STATE.last_run.virtual_now.slice(0, 10) : current.record_date;
+    const days = daysBetweenKst(current.record_date, today);
     lastGoodBox.style.display = "block";
-    lastGoodBox.textContent = `마지막 정상값 ${LAST_GOOD.date} · ${fmtWon(LAST_GOOD.value)}원 · ${days}일 지남`;
+    lastGoodBox.textContent = `마지막 정상값 ${current.record_date} · ${fmtWon(current.normalized_value)}원 · ${days}일 지남`;
   } else {
     lastGoodBox.style.display = "none";
   }
@@ -381,14 +364,9 @@ function renderValue() {
 
 async function init() {
   try {
-    const [h, l] = await Promise.all([
-      fetch("data/history.json", { cache: "no-store" }).then((r) => r.json()).catch(() => []),
-      fetch("data/last_good.json", { cache: "no-store" }).then((r) => r.json()).catch(() => null),
-    ]);
-    HISTORY = Array.isArray(h) ? h : [];
-    LAST_GOOD = l || null;
+    STATE = await fetch("data/state.json", { cache: "no-store" }).then((r) => r.json());
   } catch {
-    HISTORY = []; LAST_GOOD = null;
+    STATE = null;
   }
   renderChart();
   renderValue();

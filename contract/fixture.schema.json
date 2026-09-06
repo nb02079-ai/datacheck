@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aleph://schemas/t04/replay-fixture/v1",
+  "title": "ALEPH T04 deterministic replay fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixture_id", "contract_version", "description_ko", "virtual_now", "transport", "payload", "expected"],
+  "properties": {
+    "fixture_id": {
+      "type": "string",
+      "pattern": "^T04-[A-Z0-9-]+$"
+    },
+    "contract_version": {
+      "const": "1.1.0"
+    },
+    "description_ko": {
+      "type": "string",
+      "minLength": 1
+    },
+    "virtual_now": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "status", "delay_ms", "deadline_ms", "headers"],
+      "properties": {
+        "mode": { "enum": ["http", "timeout", "offline"] },
+        "status": { "type": ["integer", "null"] },
+        "delay_ms": { "type": "integer", "minimum": 0 },
+        "deadline_ms": { "type": "integer", "minimum": 1 },
+        "headers": { "type": "object" }
+      }
+    },
+    "payload": {
+      "type": ["object", "null"]
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["freshness", "error_code", "row_count", "stored_value", "delta", "preserve_last_good"],
+      "properties": {
+        "freshness": { "enum": ["fresh", "stale"] },
+        "error_code": { "enum": ["none", "timeout", "auth", "rate_limit", "offline", "schema_error"] },
+        "row_count": { "type": "integer", "minimum": 0 },
+        "stored_value": { "type": ["number", "null"] },
+        "delta": { "type": ["number", "null"] },
+        "preserve_last_good": { "type": "boolean" },
+        "same_record_id_as": { "type": "string" },
+        "record_date": { "type": "string" }
+      }
+    }
+  }
+}

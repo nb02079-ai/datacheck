@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "aleph://schemas/t04/normalized-reading/v1",
+  "title": "ALEPH T04 normalized reading",
+  "description": "Live adapter와 replay adapter가 저장 계층에 넘기는 공통 형식입니다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "signal_id",
+    "normalized_value",
+    "unit",
+    "source_name",
+    "source_url",
+    "source_time",
+    "fetched_at",
+    "record_timezone",
+    "record_date"
+  ],
+  "properties": {
+    "signal_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "normalized_value": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 24
+    },
+    "source_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "source_time": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "record_timezone": {
+      "const": "Asia/Seoul"
+    },
+    "record_date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])$"
+    }
+  }
+}

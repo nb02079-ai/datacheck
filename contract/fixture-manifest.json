@@ -1,0 +1,17 @@
+{
+  "manifest_schema": "aleph-t04-fixture-manifest-v1",
+  "contract_version": "1.1.0",
+  "hash_algorithm": "sha256",
+  "canonicalization": "aleph-json-canonical-v1",
+  "fixtures": [
+    { "file": "auth-401.json", "fixture_id": "T04-AUTH-401", "canonical_sha256": "sha256-fb883bd9622bde83e2d740666f844917628e1333f781af128bd58ca0e0b3baf7" },
+    { "file": "normal-d1-a.json", "fixture_id": "T04-NORMAL-D1-A", "canonical_sha256": "sha256-8eea6747114d94c8e62e80be35679e924bb12f89c87cd13f35d34df094bc7bb4" },
+    { "file": "normal-d1-b.json", "fixture_id": "T04-NORMAL-D1-B", "canonical_sha256": "sha256-1b2c45b5e0a29121e7fdc84c2c26b9d2a55777b795f42a6daebaa8994eb5bad1" },
+    { "file": "normal-d2.json", "fixture_id": "T04-NORMAL-D2", "canonical_sha256": "sha256-6663a1ffdf8b7bfaeed38f0946ae22dc1764f3b0a49a848bc96288b178b9daec" },
+    { "file": "offline.json", "fixture_id": "T04-OFFLINE", "canonical_sha256": "sha256-433d2f64e470a5b8f319719e2c9cb79042bf85c06aa1d2abc08b71f83ace3971" },
+    { "file": "rate-429.json", "fixture_id": "T04-RATE-429", "canonical_sha256": "sha256-eb752f360e3efe9957f2bd3190d0f01170943d0efd6841b6490f80f3ef175e2d" },
+    { "file": "recover-d2.json", "fixture_id": "T04-RECOVER-D2", "canonical_sha256": "sha256-8687be412b9fd88ada51a5c352c987e6498dcfa753a60cc76095b7ae09eec8e8" },
+    { "file": "schema-break.json", "fixture_id": "T04-SCHEMA-BREAK", "canonical_sha256": "sha256-63f4e87128a74b0b4a5832cc3624bd2bec66a78852cebf0fccc38a087cd618d7" },
+    { "file": "timeout.json", "fixture_id": "T04-TIMEOUT", "canonical_sha256": "sha256-fa4f741983b2ffe99ea8e4c6931e914cc2e89004e9a4a4a00f937fa6aba98e8e" }
+  ]
+}

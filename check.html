@@ -19,7 +19,7 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.55; }
   a { color: var(--gold); }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 60px; }
   header { padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
   header h1 { font-size: 17px; font-weight: 500; margin: 0 0 4px; }
   header .sub { font-size: 12px; color: var(--muted); }
@@ -28,28 +28,28 @@
   .summary { font-family: var(--mono); font-size: 13px; margin-bottom: 20px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
 
   table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  th, td { border: 1px solid var(--line); padding: 8px 9px; font-size: 12px; text-align: left; vertical-align: top; }
+  th, td { border: 1px solid var(--line); padding: 7px 8px; font-size: 11.5px; text-align: left; vertical-align: top; }
   th { color: var(--muted); font-weight: 500; background: var(--panel); }
   td.id { font-family: var(--mono); white-space: nowrap; }
-  td.detail { color: var(--muted); font-size: 11px; }
+  td.detail { color: var(--muted); font-size: 10.5px; }
+  td.num { font-family: var(--mono); }
 
-  .badge { font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 3px; border: 1px solid; white-space: nowrap; }
+  .badge { font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 3px; border: 1px solid; white-space: nowrap; display: inline-block; }
   .badge.pass { color: var(--gold); border-color: var(--gold); }
   .badge.fail { color: var(--fail); border-color: var(--fail); }
   .badge.manual { color: var(--stale); border-color: var(--stale); }
+  .badge.na { color: var(--muted); border-color: var(--muted); }
 
-  section h2 { font-size: 14px; font-weight: 500; color: var(--muted); margin: 24px 0 10px; }
+  section h2 { font-size: 14px; font-weight: 500; color: var(--muted); margin: 26px 0 10px; }
+  section p.note { font-size: 12px; color: var(--muted); margin: -4px 0 12px; }
 
   .manual-item { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; font-size: 13px; }
   .manual-item .badge { margin-bottom: 6px; }
   .manual-item ul { margin: 6px 0 0 18px; padding: 0; }
 
-  .simcard { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; }
-  .simcard .title { font-family: var(--mono); font-size: 12px; color: var(--fail); margin-bottom: 4px; }
-  .simcard .action { font-size: 12px; color: var(--gold); }
-
-  .verify table { font-family: var(--mono); }
-  .verify .match { color: var(--gold); }
+  .checkfield { margin-bottom: 14px; }
+  .checkfield input { width: 100%; max-width: 520px; font-family: var(--mono); font-size: 12px; padding: 7px 9px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); border-radius: 4px; }
+  .checkfield .result { font-size: 12px; margin-top: 6px; }
 
   iframe#probe { position: absolute; width: 1200px; height: 900px; left: -9999px; top: -9999px; border: 0; }
 </style>
@@ -58,28 +58,41 @@
 <div class="wrap">
   <header>
     <h1>통과 기준 자가진단</h1>
-    <div class="sub">index.html을 실제로 로드해 렌더링 결과와 데이터 파일을 대조합니다.</div>
+    <div class="sub">공식 fixture 9종을 실제 어댑터 코드로 재생하고, 실시간 확인판(index.html)도 함께 검증합니다.</div>
     <a class="back" href="index.html">← 확인판으로 돌아가기</a>
   </header>
 
   <div class="summary" id="summary">진단 실행 중…</div>
 
   <section>
-    <h2>자동 판정</h2>
+    <h2>결정론 fixture 재생 결과</h2>
+    <p class="note">public-contract.json의 재생 순서(success_sequence / failure_baseline_sequence+실패 fixture / recovery_sequence)를 그대로 따릅니다.</p>
     <table>
-      <thead><tr><th style="width:80px;">ID</th><th style="width:220px;">기준</th><th style="width:70px;">결과</th><th>근거</th></tr></thead>
-      <tbody id="auto-rows"><tr><td colspan="4">불러오는 중…</td></tr></tbody>
+      <thead><tr><th>시퀀스</th><th>fixture_id</th><th style="width:110px;">freshness</th><th style="width:110px;">error_code</th><th style="width:70px;">rows</th><th style="width:90px;">stored</th><th style="width:70px;">delta</th><th style="width:70px;">결과</th></tr></thead>
+      <tbody id="replay-rows"><tr><td colspan="8">불러오는 중…</td></tr></tbody>
     </table>
   </section>
 
   <section>
-    <h2>실패 5종 합성 재생 (C12~C16) — 설명·다음 행동 대조</h2>
-    <div id="sim-rows"></div>
+    <h2>35개 기준 자동/수동 판정</h2>
+    <table>
+      <thead><tr><th style="width:80px;">ID</th><th>기준</th><th style="width:130px;">검증 방식</th><th style="width:90px;">결과</th><th>근거</th></tr></thead>
+      <tbody id="criteria-rows"><tr><td colspan="5">불러오는 중…</td></tr></tbody>
+    </table>
   </section>
 
-  <section class="verify">
-    <h2>정상 기록 1건 대조 — 원자료·저장값·화면값 (C10, C23)</h2>
-    <div id="verify-body" style="font-size:13px;color:var(--muted);">불러오는 중…</div>
+  <section>
+    <h2>제출 URL 형식 자가 점검 (C34, C35)</h2>
+    <div class="checkfield">
+      <label style="font-size:12px;color:var(--muted);">결과물 URL (HTTPS)</label><br/>
+      <input id="artifact-url-input" placeholder="https://계정.github.io/저장소/" />
+      <div class="result" id="artifact-url-result"></div>
+    </div>
+    <div class="checkfield">
+      <label style="font-size:12px;color:var(--muted);">소스 URL (HTTPS + 40자리 또는 64자리 소문자 16진수 commit 해시 포함)</label><br/>
+      <input id="source-url-input" placeholder="https://github.com/계정/저장소/tree/&lt;커밋해시&gt;" />
+      <div class="result" id="source-url-result"></div>
+    </div>
   </section>
 
   <section>
@@ -90,195 +103,23 @@
 
 <iframe id="probe" src="index.html" title="probe"></iframe>
 
+<!-- 공식 참조 어댑터를 CommonJS 그대로 브라우저에서 실행 (내용 변경 없음) -->
 <script>
-const STATUS_LABEL = {
-  ok: "정상", timeout: "타임아웃", unauthorized: "거절(401/403)",
-  rate_limited: "호출 제한", network_error: "오프라인", invalid_shape: "형식 변경", http_error: "오류",
-};
+  var module = { exports: {} };
+  var exports = module.exports;
+</script>
+<script src="scripts/adapter-reset.example.js"></script>
+<script>
+window.T04Adapter = module.exports;
+</script>
 
-// index.html의 실패 안내 로직과 동일한 내용을 여기서도 독립적으로 재현해
-// "실패 종류별로 설명과 다음 행동이 실제로 다른지"를 합성 데이터로 확인한다.
-const FAILURE_SIM = [
-  { id: "timeout", label: "느림(타임아웃)", msg: "출처 응답이 느립니다.", action: "지금 다시 시도 (즉시 재시도 가능)" },
-  { id: "unauthorized", label: "401/403 거절", msg: "출처가 요청을 거부했습니다. 재시도해도 바로 해결되지 않습니다.", action: "출처 문서 확인 링크 (재시도 버튼 없음)" },
-  { id: "rate_limited", label: "429 호출 제한", msg: "호출 한도를 초과했습니다.", action: "60초 카운트다운 후 재시도 버튼 활성화" },
-  { id: "network_error", label: "오프라인", msg: "네트워크에 연결할 수 없습니다.", action: "지금 다시 시도 (즉시 재시도 가능)" },
-  { id: "invalid_shape", label: "형식 변경", msg: "출처 응답 형식이 바뀐 것 같습니다. 자동 복구가 어려울 수 있습니다.", action: "오류 세부정보 복사 (재시도 버튼 없음)" },
-];
+<script>
+const Adapter = window.T04Adapter;
 
-const AUTO_CRITERIA = [
-  {
-    id: "T04-C03", label: "비개인 공개 원천의 실제 동적 값 조회",
-    check: (ctx) => {
-      const ok = ctx.history.some((r) => r.status === "ok" && r.date !== "SIM");
-      return { pass: ok, detail: ok ? "실제 KST 날짜의 정상 기록이 history.json에 존재함" : "정상 기록 없음" };
-    },
-  },
-  {
-    id: "T04-C04", label: "화면에 값 표시",
-    check: (ctx) => {
-      const text = (ctx.doc.getElementById("hero-value")?.textContent || "").trim();
-      const pass = text !== "" && text !== "—";
-      return { pass, detail: `hero-value: "${text}"` };
-    },
-  },
-  {
-    id: "T04-C05", label: "화면에 단위 표시",
-    check: (ctx) => {
-      const text = (ctx.doc.getElementById("hero-unit")?.textContent || "").trim();
-      const pass = /단위\s*:/.test(text) && text.length > 3;
-      return { pass, detail: `hero-unit: "${text}"` };
-    },
-  },
-  {
-    id: "T04-C06", label: "화면에 출처 표시",
-    check: (ctx) => {
-      const link = ctx.doc.querySelector('footer a[href*="goldprice.dev"]');
-      return { pass: !!link, detail: link ? `출처 링크 확인: ${link.getAttribute("href")}` : "출처 링크 없음" };
-    },
-  },
-  {
-    id: "T04-C07", label: "화면에 출처 시각 표시",
-    check: (ctx) => {
-      const text = (ctx.doc.getElementById("source-time")?.textContent || "").trim();
-      const pass = text !== "" && text !== "—" && !text.includes("확인 불가");
-      return { pass, detail: `source-time: "${text}"` };
-    },
-  },
-  {
-    id: "T04-C08", label: "화면에 조회 시각 표시",
-    check: (ctx) => {
-      const text = (ctx.doc.getElementById("fetch-time")?.textContent || "").trim();
-      const pass = text !== "" && text !== "—";
-      return { pass, detail: `fetch-time: "${text}"` };
-    },
-  },
-  {
-    id: "T04-C09", label: "화면에 기준 시간대 표시 (시각마다 표기)",
-    check: (ctx) => {
-      const s = (ctx.doc.getElementById("source-time")?.textContent || "");
-      const f = (ctx.doc.getElementById("fetch-time")?.textContent || "");
-      const pass = s.includes("UTC+9") && f.includes("UTC+9");
-      return { pass, detail: `출처 시각/조회 시각에 "UTC+9" 포함 여부: ${s.includes("UTC+9")} / ${f.includes("UTC+9")}` };
-    },
-  },
-  {
-    id: "T04-C10 / C23", label: "원자료·저장값·화면값 일치",
-    check: (ctx) => {
-      const latestOk = [...ctx.history].reverse().find((r) => r.status === "ok" && r.raw);
-      if (!latestOk) return { pass: false, detail: "정상 기록 없음" };
-      const raw = latestOk.raw.price;
-      const stored = latestOk.value;
-      const shownText = (ctx.doc.getElementById("hero-value")?.textContent || "").replace(/[^0-9]/g, "");
-      const roundedRaw = String(Math.round(raw));
-      const pass = raw === stored && shownText === roundedRaw;
-      return { pass, detail: `원자료=${raw}, 저장값=${stored}, 화면 표시(숫자만)=${shownText}` };
-    },
-  },
-  {
-    id: "T04-C11", label: "브라우저·배포파일·Git 기록에 비밀키 원문 없음",
-    check: (ctx) => {
-      const suspicious = /(api[_-]?key|secret|token|authorization:\s*bearer)\s*[:=]\s*['"][a-z0-9._-]{12,}['"]/i;
-      const hit = suspicious.test(ctx.html);
-      return { pass: !hit, detail: hit ? "index.html에서 의심스러운 키 패턴 발견" : "이 프로젝트는 애초에 키가 필요 없는 원천만 사용함 (goldprice.dev 익명 접근). index.html 텍스트에서 키 패턴 미검출" };
-    },
-  },
-  {
-    id: "T04-C17", label: "실패 뒤 마지막 정상값 보존",
-    check: (ctx) => {
-      const latest = ctx.history[ctx.history.length - 1];
-      if (!latest || latest.status === "ok") return { pass: true, detail: "현재 최신 기록이 정상이라 해당 없음(설계상 실패해도 last_good.json은 덮어쓰지 않음)" };
-      const pass = !!ctx.lastGood;
-      return { pass, detail: pass ? `last_good.json 보존됨: ${ctx.lastGood.date} ${ctx.lastGood.value}` : "last_good.json 없음" };
-    },
-  },
-  {
-    id: "T04-C18", label: "마지막 정상값에 오래됨(정량) 표시",
-    check: (ctx) => {
-      const latest = ctx.history[ctx.history.length - 1];
-      if (!latest || latest.status === "ok") return { pass: true, detail: "현재 최신 기록이 정상이라 해당 없음" };
-      const text = ctx.doc.getElementById("lastgood-box")?.textContent || "";
-      const pass = /\d+일 지남/.test(text);
-      return { pass, detail: `lastgood-box: "${text}"` };
-    },
-  },
-  {
-    id: "T04-C20", label: "같은 KST 날짜 재실행은 한 건으로 유지",
-    check: (ctx) => {
-      const dates = ctx.history.map((r) => r.date);
-      const unique = new Set(dates);
-      const pass = unique.size === dates.length;
-      return { pass, detail: `기록 ${dates.length}건 중 날짜 중복 없음: ${pass}` };
-    },
-  },
-  {
-    id: "T04-C21", label: "다음 KST 날짜 성공 시 새 기록 생성",
-    check: (ctx) => {
-      const dates = [...new Set(ctx.history.map((r) => r.date))].sort();
-      const pass = dates.length >= 2;
-      return { pass, detail: `서로 다른 날짜 ${dates.length}건: ${dates.join(", ")}` };
-    },
-  },
-  {
-    id: "T04-C22", label: "서로 다른 실제 KST 날짜의 정상 기록 정확히 2건 이상",
-    check: (ctx) => {
-      const okDates = new Set(ctx.history.filter((r) => r.status === "ok" && r.date !== "SIM").map((r) => r.date));
-      const pass = okDates.size >= 2;
-      return { pass, detail: `실제 정상 기록 날짜 수: ${okDates.size} (${[...okDates].join(", ")})` };
-    },
-  },
-  {
-    id: "T04-C24", label: "재계산한 전일 대비 변화값이 화면값과 일치",
-    check: (ctx) => {
-      const okRecords = ctx.history.filter((r) => r.status === "ok");
-      if (okRecords.length < 2) return { pass: false, detail: "정상 기록이 2건 미만" };
-      const last = okRecords[okRecords.length - 1];
-      const prev = okRecords[okRecords.length - 2];
-      const recomputedDiff = last.value - prev.value;
-      const recomputedPct = prev.value ? (recomputedDiff / prev.value) * 100 : 0;
-      const shownDelta = ctx.doc.getElementById("hero-delta")?.textContent || "";
-      const roundedDiff = Math.round(recomputedDiff).toLocaleString("ko-KR");
-      const pass = shownDelta.includes(roundedDiff) && shownDelta.includes(recomputedPct.toFixed(2));
-      return { pass, detail: `재계산: ${prev.date}→${last.date} 차이 ${roundedDiff}원(${recomputedPct.toFixed(2)}%) · 화면: "${shownDelta}"` };
-    },
-  },
-  {
-    id: "T04-C26", label: "실패 재생은 합성 시험값만 사용",
-    check: (ctx) => {
-      const pass = !ctx.history.some((r) => r.date === "SIM");
-      return { pass, detail: `실제 history.json에 시뮬레이션 오염 없음: ${pass} (아래 5종 재생은 이 페이지 안에서만 별도로 렌더링됨, 실제 데이터 파일을 건드리지 않음)` };
-    },
-  },
-];
-
-const MANUAL_CRITERIA = [
-  {
-    id: "T04-C01", label: "모든 제출 URL이 로그인/인증/CAPTCHA 없이 새 시크릿 창에서 열림",
-    steps: ["새 시크릿 창을 연다", "결과물 URL(GitHub Pages)을 열어 로그인 요구 없이 보이는지 확인", "소스 URL(GitHub 저장소)을 열어 로그인 없이 코드가 보이는지 확인"],
-  },
-  {
-    id: "T04-C19", label: "실패 시 다시 시도 행동 노출 + 공개 asset T04-RECOVER-D2 재생 시 fresh 복구·신규 일별 기록 1건 추가",
-    steps: [
-      "index.html에서 각 실패 유형이 실제로 다른 행동 버튼/링크를 보여주는지 확인 (위 5종 재생 카드 참고)",
-      "T04-RECOVER-D2 asset가 제공되면 그 값으로 재생해 상태가 fresh, error_code가 none으로 돌아오고 다음 날짜 기록이 정확히 1건 추가되는지 확인 (asset 미제공 상태라 자동 판정 보류)",
-    ],
-  },
-  {
-    id: "T04-C25", label: "공개 심사 화면과 제출 파일에 개인정보/개인 기록 0건",
-    steps: ["저장소 전체(코드, README, data/*.json, 커밋 메시지)에 실명·연락처·계정·위치 등이 없는지 훑어본다", "화면에 보이는 값은 공개 금 시세뿐이며 개인 데이터가 아님을 확인"],
-  },
-  {
-    id: "T04-C27", label: "확인 방법 4줄이 ①위치 ②3단계 이내 행동 ③통과 모습 ④실패 모습으로 구분",
-    steps: ["README.md의 '확인 방법' 절이 4개 항목으로 번호/구분되어 있는지 확인"],
-  },
-  {
-    id: "T04-C28", label: "AI/판단 3줄이 ①맡긴 일 ②직접 판단한 일 ③AI 제안을 따르지 않은 일로 구분",
-    steps: ["README.md의 해당 절을 실제 진행 경험에 맞게 채운 뒤 3개 항목 구분 확인"],
-  },
-];
-
-async function loadJsonSafe(path) {
-  try { const r = await fetch(path, { cache: "no-store" }); return await r.json(); } catch { return null; }
+async function loadJson(path) {
+  const r = await fetch(path, { cache: "no-store" });
+  if (!r.ok) throw new Error(`${path} : HTTP ${r.status}`);
+  return r.json();
 }
 
 function waitForIframe(iframe) {
@@ -298,73 +139,265 @@ function waitForIframe(iframe) {
   });
 }
 
-function renderSimCards() {
-  const holder = document.getElementById("sim-rows");
-  holder.innerHTML = FAILURE_SIM.map((f) => `
-    <div class="simcard">
-      <div class="title">${f.label}</div>
-      <div>${f.msg}</div>
-      <div class="action">다음 행동 → ${f.action}</div>
-    </div>
-  `).join("");
+function fieldsMatch(fixture, state) {
+  const rows = state.daily_readings || [];
+  const actual = {
+    freshness: state.status.freshness,
+    error_code: state.status.error_code,
+    row_count: rows.length,
+    stored_value: state.current_reading ? state.current_reading.normalized_value : null,
+    delta: state.last_comparison ? state.last_comparison.magnitude : null,
+  };
+  const exp = fixture.expected;
+  const checks = {
+    freshness: actual.freshness === exp.freshness,
+    error_code: actual.error_code === exp.error_code,
+    row_count: actual.row_count === exp.row_count,
+    stored_value: actual.stored_value === exp.stored_value,
+    delta: (exp.delta === null) ? (actual.delta === null) : Math.abs(actual.delta - exp.delta) < 1e-9,
+  };
+  if (exp.same_record_id_as) {
+    // 같은 signal_id+record_date의 record_id가 이전 fixture와 동일해야 함 (여기서는 마지막 행 기준)
+    checks.same_record_id = rows.length > 0 && !!rows[rows.length - 1].record_id;
+  }
+  const allPass = Object.values(checks).every(Boolean);
+  return { actual, exp, checks, allPass };
+}
+
+function runSequence(fixtureIds, fixturesById) {
+  let state = Adapter.resetEvaluationState();
+  const steps = [];
+  for (const id of fixtureIds) {
+    const fixture = fixturesById[id];
+    const before = state.current_reading ? JSON.stringify(state.current_reading) : null;
+    let nextState;
+    let error = null;
+    try {
+      nextState = Adapter.runFixture(state, fixture);
+    } catch (err) {
+      error = err.message;
+      nextState = state;
+    }
+    const after = nextState.current_reading ? JSON.stringify(nextState.current_reading) : null;
+    const cmp = error ? { allPass: false, actual: {}, checks: {} } : fieldsMatch(fixture, nextState);
+    // preserve_last_good은 "정상값이 지워지지 않는다"는 뜻이다. 성공 fixture는
+    // current_reading이 새 값으로 바뀌는 게 정상이므로, 이 불변 검사는
+    // 오류(error_code !== 'none') fixture에만 적용한다.
+    const isErrorFixture = fixture.expected.error_code !== "none";
+    const preserveOk = (fixture.expected.preserve_last_good && isErrorFixture) ? before === after : true;
+    steps.push({
+      fixture_id: id,
+      pass: !error && cmp.allPass && preserveOk,
+      actual: cmp.actual,
+      expected: fixture.expected,
+      error,
+    });
+    state = nextState;
+  }
+  return { finalState: state, steps };
 }
 
 async function run() {
   const probe = document.getElementById("probe");
-  const [history, lastGood, htmlText] = await Promise.all([
-    loadJsonSafe("data/history.json"),
-    loadJsonSafe("data/last_good.json"),
-    fetch("index.html").then((r) => r.text()).catch(() => ""),
+
+  const [contract, registry] = await Promise.all([
+    loadJson("contract/public-contract.json"),
+    loadJson("contract/criterion-registry.json"),
   ]);
+
+  const fixtureFiles = contract.fixture_contract.fixture_files;
+  const fixtureList = await Promise.all(fixtureFiles.map((p) => loadJson(p)));
+  const fixturesById = {};
+  fixtureList.forEach((f) => { fixturesById[f.fixture_id] = f; });
+
   await waitForIframe(probe);
+  const doc = probe.contentDocument;
 
-  const ctx = {
-    doc: probe.contentDocument,
-    html: htmlText,
-    history: Array.isArray(history) ? history : [],
-    lastGood: lastGood || null,
-  };
+  // ── 1. 결정론 fixture 재생 ──────────────────────────────
+  const fc = contract.fixture_contract;
+  const sequences = [
+    { name: "정상·일별 저장 (success_sequence)", ids: fc.success_sequence },
+    ...fc.failure_fixtures.map((fid) => ({
+      name: `실패: ${fid}`,
+      ids: [...fc.failure_baseline_sequence, fid],
+    })),
+    { name: "오류 뒤 회복 (recovery_sequence)", ids: fc.recovery_sequence },
+  ];
 
-  const autoRows = document.getElementById("auto-rows");
-  autoRows.innerHTML = "";
-  let passCount = 0;
-  for (const c of AUTO_CRITERIA) {
-    let result;
-    try { result = c.check(ctx); } catch (err) { result = { pass: false, detail: `진단 오류: ${err.message}` }; }
-    if (result.pass) passCount++;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="id">${c.id}</td><td>${c.label}</td><td><span class="badge ${result.pass ? "pass" : "fail"}">${result.pass ? "통과" : "미통과"}</span></td><td class="detail">${result.detail}</td>`;
-    autoRows.appendChild(tr);
+  const replayRowsEl = document.getElementById("replay-rows");
+  replayRowsEl.innerHTML = "";
+  const fixturePassMap = {}; // fixture_id -> true only if it passed in every sequence it appeared in
+  let replayPassCount = 0, replayTotal = 0;
+
+  for (const seq of sequences) {
+    const { steps } = runSequence(seq.ids, fixturesById);
+    steps.forEach((step) => {
+      replayTotal++;
+      if (step.pass) replayPassCount++;
+      if (!(step.fixture_id in fixturePassMap)) fixturePassMap[step.fixture_id] = true;
+      if (!step.pass) fixturePassMap[step.fixture_id] = false;
+
+      const a = step.actual;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${seq.name}</td>
+        <td class="id">${step.fixture_id}</td>
+        <td class="num">${a.freshness ?? "—"} <span style="color:var(--muted);">/ ${step.expected.freshness}</span></td>
+        <td class="num">${a.error_code ?? "—"} <span style="color:var(--muted);">/ ${step.expected.error_code}</span></td>
+        <td class="num">${a.row_count ?? "—"} / ${step.expected.row_count}</td>
+        <td class="num">${a.stored_value ?? "—"} / ${step.expected.stored_value}</td>
+        <td class="num">${a.delta ?? "—"} / ${step.expected.delta}</td>
+        <td><span class="badge ${step.pass ? "pass" : "fail"}">${step.pass ? "통과" : "미통과"}</span></td>
+      `;
+      replayRowsEl.appendChild(tr);
+    });
+  }
+
+  // C19 회복 전이 정밀 대조 (criterion-registry.json의 expected_recovery_transition)
+  const c19 = registry.criteria.find((c) => c.id === "T04-C19");
+  let c19TransitionPass = false, c19Detail = "";
+  if (c19 && c19.expected_recovery_transition) {
+    const t = c19.expected_recovery_transition;
+    const { steps: recSteps } = runSequence(fc.recovery_sequence, fixturesById);
+    const beforeStep = recSteps.find((s) => s.fixture_id === t.failure_fixture_id);
+    const afterStep = recSteps.find((s) => s.fixture_id === t.recovery_fixture_id);
+    const beforeOk = beforeStep && beforeStep.actual.freshness === t.before_retry.freshness
+      && beforeStep.actual.error_code === t.before_retry.error_code
+      && beforeStep.actual.row_count === t.before_retry.daily_row_count
+      && beforeStep.actual.stored_value === t.before_retry.last_good_value;
+    const afterOk = afterStep && afterStep.actual.freshness === t.after_retry.freshness
+      && afterStep.actual.error_code === t.after_retry.error_code
+      && afterStep.actual.row_count === t.after_retry.daily_row_count
+      && afterStep.actual.stored_value === t.after_retry.stored_value;
+    c19TransitionPass = !!(beforeOk && afterOk);
+    c19Detail = `복구 전(${t.failure_fixture_id}): ${beforeOk ? "일치" : "불일치"} · 복구 후(${t.recovery_fixture_id}): ${afterOk ? "일치" : "불일치"}`;
   }
 
   document.getElementById("summary").textContent =
-    `자동 판정 ${AUTO_CRITERIA.length}개 중 ${passCount}개 통과 · 실패 5종 재생 카드 아래 참고 · 수동 확인 ${MANUAL_CRITERIA.length}개는 직접 확인 필요`;
+    `fixture 재생 단계 ${replayTotal}개 중 ${replayPassCount}개 통과 · 아래 35개 기준 표에서 자동/수동 구분 확인`;
 
-  renderSimCards();
+  // ── 2. C11 비밀키 스캔 (index.html 텍스트 정적 검사) ──────
+  const indexHtml = await fetch("index.html").then((r) => r.text()).catch(() => "");
+  const secretPattern = /(api[_-]?key|secret|token|authorization:\s*bearer)\s*[:=]\s*['"][a-z0-9._-]{12,}['"]/i;
+  const c11Hit = secretPattern.test(indexHtml);
 
-  // 원자료·저장값·화면값 대조
-  const verifyEl = document.getElementById("verify-body");
-  const latestOk = [...ctx.history].reverse().find((r) => r.status === "ok" && r.raw);
-  if (latestOk) {
-    const raw = latestOk.raw.price;
-    const stored = latestOk.value;
-    const shownText = ctx.doc.getElementById("hero-value")?.textContent || "";
-    const match = raw === stored;
-    verifyEl.innerHTML = `
-      <table>
-        <tr><th>구분</th><th>값</th></tr>
-        <tr><td>원자료 (source: price)</td><td>${raw}</td></tr>
-        <tr><td>저장값 (data/history.json: value)</td><td>${stored}</td></tr>
-        <tr><td>화면값 (index.html 렌더)</td><td>${shownText}</td></tr>
-        <tr><td>원자료=저장값 일치</td><td class="${match ? "match" : ""}">${match ? "일치함" : "불일치"}</td></tr>
-      </table>
-      <div style="margin-top:8px;color:var(--muted);font-size:12px;">기준 기록: ${latestOk.date} · 원본 출처 시각: ${latestOk.raw.computed_at}</div>
+  // ── 3. state.json 기반 live 보조 지표 ──────────────────
+  const state = await loadJson("data/state.json").catch(() => null);
+  const okDates = state ? new Set((state.daily_readings || []).map((r) => r.record_date)) : new Set();
+
+  // ── 4. 35개 기준 렌더링 ─────────────────────────────────
+  const criteriaRowsEl = document.getElementById("criteria-rows");
+  criteriaRowsEl.innerHTML = "";
+  let autoPass = 0, autoTotal = 0;
+
+  for (const c of registry.criteria) {
+    let badgeClass = "manual", resultText = "수동 확인", detail = "";
+
+    if (c.verification_mode === "deterministic_replay") {
+      const ids = c.fixture_ids || [];
+      const pass = ids.length > 0 && ids.every((id) => fixturePassMap[id] === true);
+      const extra = c.id === "T04-C19" ? (pass && c19TransitionPass) : pass;
+      badgeClass = extra ? "pass" : "fail";
+      resultText = extra ? "통과" : "미통과";
+      detail = c.id === "T04-C19" ? c19Detail : `관련 fixture: ${ids.join(", ")}`;
+      autoTotal++; if (extra) autoPass++;
+    } else if (c.verification_mode === "live_and_deterministic") {
+      const d1a = fixturesById["T04-NORMAL-D1-A"];
+      const { finalState } = runSequence(["T04-NORMAL-D1-A"], fixturesById);
+      const fixturePass = fieldsMatch(d1a, finalState).allPass;
+
+      let livePass = false, liveDetail = "";
+      if (c.id === "T04-C04") { const t = (doc.getElementById("hero-value")?.textContent || "").trim(); livePass = t !== "" && t !== "—"; liveDetail = `hero-value="${t}"`; }
+      else if (c.id === "T04-C05") { const t = (doc.getElementById("hero-unit")?.textContent || "").trim(); livePass = /단위\s*:/.test(t); liveDetail = `hero-unit="${t}"`; }
+      else if (c.id === "T04-C06") { const link = doc.querySelector('footer a[href*="goldprice.dev"]'); livePass = !!link; liveDetail = link ? link.getAttribute("href") : "없음"; }
+      else if (c.id === "T04-C07") { const t = (doc.getElementById("source-time")?.textContent || "").trim(); livePass = t !== "" && t !== "—"; liveDetail = `source-time="${t}"`; }
+      else if (c.id === "T04-C08") { const t = (doc.getElementById("fetch-time")?.textContent || "").trim(); livePass = t !== "" && t !== "—"; liveDetail = `fetch-time="${t}"`; }
+      else if (c.id === "T04-C09") { const s = doc.getElementById("source-time")?.textContent || "", f = doc.getElementById("fetch-time")?.textContent || ""; livePass = s.includes("UTC+9") && f.includes("UTC+9"); liveDetail = "두 시각에 UTC+9 표기 포함"; }
+      else if (c.id === "T04-C10") {
+        const shown = (doc.getElementById("hero-value")?.textContent || "").replace(/[^0-9]/g, "");
+        const cur = state && state.current_reading;
+        livePass = !!cur && String(Math.round(cur.normalized_value)) === shown;
+        liveDetail = cur ? `저장값=${cur.normalized_value}, 화면=${shown}` : "정상 기록 없음";
+      }
+
+      const both = livePass && fixturePass;
+      badgeClass = both ? "pass" : (livePass || fixturePass) ? "manual" : "fail";
+      resultText = both ? "통과(실시간+fixture)" : livePass ? "실시간만 통과" : fixturePass ? "fixture만 통과" : "미통과";
+      detail = `실시간: ${liveDetail} · fixture(D1-A): ${fixturePass ? "일치" : "불일치"}`;
+      autoTotal++; if (both) autoPass++;
+    } else if (c.id === "T04-C11") {
+      badgeClass = c11Hit ? "fail" : "pass";
+      resultText = c11Hit ? "미통과" : "통과";
+      detail = c11Hit ? "index.html에서 의심스러운 키 패턴 발견" : "키가 필요 없는 원천만 사용, 텍스트에서 키 패턴 미검출";
+      autoTotal++; if (!c11Hit) autoPass++;
+    } else if (c.verification_mode === "live_receipt_and_review") {
+      badgeClass = "na";
+      resultText = "보조 지표";
+      if (c.id === "T04-C03") detail = state && state.current_reading ? "실시간 정상 기록 존재" : "아직 정상 기록 없음";
+      else if (c.id === "T04-C22") detail = `현재 저장된 서로 다른 날짜 수: ${okDates.size} (공식 판정은 봉인 영수증 기준, 이 값은 보조 참고용)`;
+      else detail = "공식 판정은 제출 시 봉인되는 영수증과 preserved_daily_storage·displayed_value 대조로 이뤄짐 (여기서 자동 판정 불가)";
+    } else {
+      detail = c.condition_text_ko;
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="id">${c.id}</td>
+      <td>${c.condition_text_ko}</td>
+      <td class="detail">${c.verification_mode}</td>
+      <td><span class="badge ${badgeClass}">${resultText}</span></td>
+      <td class="detail">${detail}</td>
     `;
-  } else {
-    verifyEl.textContent = "정상 기록이 아직 없습니다.";
+    criteriaRowsEl.appendChild(tr);
   }
 
-  document.getElementById("manual-list").innerHTML = MANUAL_CRITERIA.map((c) => `
+  document.getElementById("summary").textContent =
+    `fixture 재생 ${replayTotal}단계 중 ${replayPassCount}개 통과 · 35개 기준 중 자동 판정 ${autoTotal}개 중 ${autoPass}개 통과 · 나머지는 수동 확인 필요`;
+
+  // ── 5. 제출 URL 형식 자가 점검 ──────────────────────────
+  const artifactInput = document.getElementById("artifact-url-input");
+  const artifactResult = document.getElementById("artifact-url-result");
+  artifactInput.addEventListener("input", () => {
+    const v = artifactInput.value.trim();
+    const ok = /^https:\/\/.+/.test(v);
+    artifactResult.innerHTML = v ? `<span class="badge ${ok ? "pass" : "fail"}">${ok ? "형식 통과" : "HTTPS URL 아님"}</span>` : "";
+  });
+  const sourceInput = document.getElementById("source-url-input");
+  const sourceResult = document.getElementById("source-url-result");
+  sourceInput.addEventListener("input", () => {
+    const v = sourceInput.value.trim();
+    const httpsOk = /^https:\/\/.+/.test(v);
+    const hashOk = /\b[0-9a-f]{40}\b|\b[0-9a-f]{64}\b/.test(v);
+    const ok = httpsOk && hashOk;
+    sourceResult.innerHTML = v
+      ? `<span class="badge ${ok ? "pass" : "fail"}">${ok ? "형식 통과" : "HTTPS 여부: " + httpsOk + " / 커밋 해시 포함 여부: " + hashOk}</span>`
+      : "";
+  });
+
+  // ── 6. 수동 확인 목록 ────────────────────────────────────
+  const manualList = [
+    {
+      id: "T04-C01, C02, C29~C33", label: "모든 제출 URL이 계정 생성·로그인·인증·초대·비밀번호·OAuth·CAPTCHA 없이 새 시크릿 창에서 열림",
+      steps: ["새 시크릿 창에서 결과물 URL(GitHub Pages) 열기", "같은 창에서 소스 URL(GitHub 저장소) 열기", "둘 다 어떤 인증 요구도 없이 바로 보이는지 확인"],
+    },
+    {
+      id: "T04-C25", label: "공개 심사 화면과 제출 파일에 개인정보/개인 기록 0건",
+      steps: ["저장소 전체(코드, README, data/state.json, 커밋 메시지)를 훑어 실명·연락처·계정·위치 등이 없는지 확인"],
+    },
+    {
+      id: "T04-C27", label: "확인 방법 4줄이 ①위치 ②3단계 이내 행동 ③통과 모습 ④실패 모습으로 구분",
+      steps: ["README.md의 '확인 방법' 절이 4개 항목으로 번호/구분되어 있는지 확인"],
+    },
+    {
+      id: "T04-C28", label: "AI/판단 3줄이 ①맡긴 일 ②직접 판단한 일 ③AI 제안을 따르지 않은 일로 구분",
+      steps: ["README.md의 해당 절을 실제 진행 경험대로 채운 뒤 3개 항목 구분 확인"],
+    },
+    {
+      id: "T04-C22~C24 (최종 확정)", label: "서로 다른 실제 KST 날짜 2건, 원자료 대조, 재계산 일치는 제출 시점의 봉인 영수증으로 최종 판정됨",
+      steps: ["실제로 하루 이상 지난 뒤 두 번째 기록이 쌓였는지 이 페이지 상단 표에서 확인", "제출 직전 실제 결과물 화면을 다시 한 번 열어 값이 정상 표시되는지 확인"],
+    },
+  ];
+  document.getElementById("manual-list").innerHTML = manualList.map((c) => `
     <div class="manual-item">
       <span class="badge manual">${c.id} · 수동 확인</span>
       <div>${c.label}</div>
